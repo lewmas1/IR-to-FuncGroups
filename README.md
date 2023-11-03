@@ -8,8 +8,8 @@ Can predict functional groups from IR spectra images using CNN. This project inc
 
 
 <div style="display: flex;">
-  <img src="Figure/GUI black.png" alt="Image 1" width="320" />
-  <img src="Figure/GUI red.png" alt="Image 2" width="320" />
+  <img src="Figure/GUI black.png" alt="Image 1" width="350" />
+  <img src="Figure/GUI red.png" alt="Image 2" width="350" />
 </div>
 The GUI is built using Tkinter and PIL. It features a simple interface for users to upload their IR spectra images and predict the functional groups. The GUI also allows users to select particular functional groups and gives a table of probabilities for each group.
 
