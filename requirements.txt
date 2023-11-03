@@ -1,0 +1,8 @@
+opencv-python
+numpy
+Pillow
+scipy
+torch
+matplotlib
+customtkinter
+tksheet
