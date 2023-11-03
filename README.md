@@ -17,7 +17,7 @@ The GUI is built using Tkinter and PIL. It features a simple interface for users
 ## Installation
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ir-spectra-predictor.git
+git clone https://github.com/lewmas1/IR-Image-to-FuncGroups.git
 
 # Change directory to the project folder
 cd ir-spectra-predictor
