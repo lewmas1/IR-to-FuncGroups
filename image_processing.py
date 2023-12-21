@@ -88,13 +88,6 @@ def remove_duplicate_x(spectrum):
         i = j
     return result
 
-# Define a function to add some points to the left of the spectrum
-def add1(spectrum):
-    newspec = []
-    for i in range(7):
-        newspec.append(((spectrum[0][0]-i), spectrum[0][1]))
-    return (newspec + spectrum)
-
 # Define a function to load an image and extract the red channel
 def loadimgred(filepath):
     # This function loads an image from a file path and returns the original and fitted y-coordinates of the black pixels
@@ -117,7 +110,6 @@ def loadimgred(filepath):
     original = sort_by_first_element(black_pixels) # Sort the black pixels by their x-coordinates
     black_pixels = process_input(original, height) # Process the input by removing noise and outliers
     black_pixels = remove_duplicate_x(black_pixels) # Remove duplicate x-coordinates from the black pixels
-    #black_pixels = add1(black_pixels)
     fitted = fill_gaps(black_pixels,1000) # Fill the gaps in the black pixels using interpolation
     originaly= [y/height for [x, y] in original] # Normalize the original y-coordinates by dividing by the height
     originalx= [x for [x, y] in original] # Get the original x-coordinates

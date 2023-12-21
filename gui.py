@@ -16,6 +16,75 @@ customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "gre
 
 
 class App(customtkinter.CTk):
+    # This function opens a dialog box to get a number input from the user
+    def open_input_dialog_event(self):
+        dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
+        print("CTkInputDialog:", dialog.get_input())
+
+    # This function changes the appearance mode of the custom tkinter widgets
+    def change_appearance_mode_event(self, new_appearance_mode: str):
+        customtkinter.set_appearance_mode(new_appearance_mode)
+
+    # This function changes the scaling factor of the custom tkinter widgets
+    def change_scaling_event(self, new_scaling: str):
+        new_scaling_float = int(new_scaling.replace("%", "")) / 100
+        customtkinter.set_widget_scaling(new_scaling_float)
+
+    # This function imports an image file and displays it on the canvas
+    def import_image(self):
+        # Open a file dialog to choose an image
+        filepath = filedialog.askopenfilename(filetypes=[('Image Files', '*.png;*.jpg;*.jpeg')])
+        # Load the image and display it on the canvas
+        img = Image.open(filepath).convert('RGB')
+        graphic_image = customtkinter.CTkImage(img, size=(400, 247))
+        label = customtkinter.CTkLabel(self.img_frame, image=graphic_image, text='')
+        label.place(x=0, y=0)
+        self.update_plot(filepath)
+
+    def update_plot(self, filepath):
+        if self.radio_var.get() == 0:
+            originaly, originalx, fitted = loadimgred(filepath)
+        elif self.radio_var.get() == 1:
+            originaly, originalx, fitted = loadimgblack(filepath)
+        else:
+            return
+
+        plt.clf()  # clear the plot
+        x = range(0, 1000)
+        plt.plot(originalx, originaly, 'b', label='Original Data', lw=0.9)  # plot a blue straight line
+        plt.plot(x, fitted, 'r', label='Fitted Data', lw=0.9)  # plot a red fitted line
+        xtick_labels = ['0', '4000', '3500', '3000', '2500', '2000', '1500', '1000', '500', '0']
+        plt.gca().set_xticklabels(xtick_labels)
+        plt.xlabel('Wavenumber / cm⁻¹', fontsize=8)
+        plt.ylabel('Transmittance', fontsize=8)
+        self.plot_canvas_canvas.draw()  # redraw the plot canvas
+
+        if self.radio_var1.get() == 0:
+            self.run_ai(fitted)
+        elif self.radio_var1.get() == 1:
+            self.run_ai_all(fitted)
+
+    # This function runs the first AI model on the fitted data and displays the results in a table
+    def run_ai(self, fitted):
+        func = ['alcohol', 'carboxylic acid', 'ester', 'amide', 'aldehyde', 'ketone', 'Alkane', 'amine', 'alkyl halide',
+                'alkene', 'methyl', 'aromatic 6 MB ring']
+        model = Model1()
+        model.load_state_dict(torch.load('models/model3.pt'))
+        model.eval()
+        fitted = torch.from_numpy(np.array(fitted)).float().view(-1, 1, 1000)
+        output = model(fitted)[0].tolist()
+        pairs = [(func[i], output[i]) for i in range(len(output)) if output[i] > 0]
+        self.table.set_sheet_data(data=pairs)
+
+    # This function runs all the AI models on the fitted data and displays the results in a table
+    def run_ai_all(self, fitted):
+        func = ['alcohol', 'carboxylic acid', 'ester', 'amide', 'aldehyde', 'ketone', 'Alkane', 'amine', 'alkyl halide',
+                'alkene', 'methyl', 'aromatic 6 MB ring']
+        models = [Model() for _ in range(1, 13)]
+        final = [float(model(torch.from_numpy(np.array(fitted)).float().view(-1, 1, 1000))[0][0]) for model in models]
+        pairs = [[func[i], final[i]] for i in range(12) if final[i] > 0]
+        self.table.set_sheet_data(data=pairs)
+
     def __init__(self):
         super().__init__()
 
@@ -135,23 +204,21 @@ class App(customtkinter.CTk):
     def import_image(self):
         # Open a file dialog to choose an image
         filepath = filedialog.askopenfilename(filetypes=[('Image Files', '*.png;*.jpg;*.jpeg')])
-
         # Load the image and display it on the canvas
         img = Image.open(filepath).convert('RGB')
-        # img = img.resize((410, 247))
-
         graphic_image = customtkinter.CTkImage(img, size=(400, 247))
         label = customtkinter.CTkLabel(self.img_frame, image=graphic_image, text='')
         label.place(x=0, y=0)
         self.update_plot(filepath)
 
-    # This function updates the plot based on the image file and the radio button selection
     def update_plot(self, filepath):
-        # print(filepath)
         if self.radio_var.get() == 0:
             originaly, originalx, fitted = loadimgred(filepath)
-        if self.radio_var.get() == 1:
+        elif self.radio_var.get() == 1:
             originaly, originalx, fitted = loadimgblack(filepath)
+        else:
+            return
+
         plt.clf()  # clear the plot
         x = range(0, 1000)
         plt.plot(originalx, originaly, 'b', label='Original Data', lw=0.9)  # plot a blue straight line
@@ -164,45 +231,27 @@ class App(customtkinter.CTk):
 
         if self.radio_var1.get() == 0:
             self.run_ai(fitted)
-        if self.radio_var1.get() == 1:
+        elif self.radio_var1.get() == 1:
             self.run_ai_all(fitted)
 
     # This function runs the first AI model on the fitted data and displays the results in a table
     def run_ai(self, fitted):
         func = ['alcohol', 'carboxylic acid', 'ester', 'amide', 'aldehyde', 'ketone', 'Alkane', 'amine', 'alkyl halide',
-                'alkene', 'methyl', 'aromatic 6 MB ring']
-        output = []
+            'alkene', 'methyl', 'aromatic 6 MB ring']
         model = Model1()
         model.load_state_dict(torch.load('models/model3.pt'))
         model.eval()
-        fitted = torch.from_numpy(np.array(fitted)).float()
-        fitted = fitted.view(-1, 1, 1000)
-        output = list(model(fitted)[0])
-        pairs = []
-        for i in range(len(output)):
-            if output[i] > 0:
-                pairs.append([(func[i]), (output[i])])
+        fitted = torch.from_numpy(np.array(fitted)).float().view(-1, 1, 1000)
+        output = model(fitted)[0].tolist()
+        pairs = [(func[i], output[i]) for i in range(len(output)) if output[i] > 0]
         self.table.set_sheet_data(data=pairs)
 
     # This function runs all the AI models on the fitted data and displays the results in a table
     def run_ai_all(self, fitted):
         func = ['alcohol', 'carboxylic acid', 'ester', 'amide', 'aldehyde', 'ketone', 'Alkane', 'amine', 'alkyl halide',
-                'alkene', 'methyl', 'aromatic 6 MB ring']
-        f = []
-        for line in func:
-            f = [line] + f
-        final = []
-        for p in range(1, 13):
-            output = []
-            model = Model()
-            model.load_state_dict(torch.load('models/' + str(p) + '.pt'))
-            model.eval()
-            fitted = torch.from_numpy(np.array(fitted)).float()
-            fitted = fitted.view(-1, 1, 1000)
-            final.append(float(model(fitted)[0][0]))
-        pairs = []
-        for i in range(0, 12):
-            if final[i] > 0:
-                pairs.append([(f[i]), (final[i])])
+            'alkene', 'methyl', 'aromatic 6 MB ring']
+        models = [Model() for _ in range(1, 13)]
+        final = [float(model(torch.from_numpy(np.array(fitted)).float().view(-1, 1, 1000))[0][0]) for model in models]
+        pairs = [[func[i], final[i]] for i in range(12) if final[i] > 0]
         self.table.set_sheet_data(data=pairs)
 
