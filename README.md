@@ -1,6 +1,6 @@
 # IR Spectra Functional Group Predictor using CNN's
 
-Can predict functional groups from IR spectra images using CNN. This project includes all the necessary code for image processing, such as image manipulation, pixel mapping and interpolation. Additionally, it features a functional GUI for ease of use. It was trained on around 40,000 IR images.
+Can predict functional groups from IR spectra images using CNN. This project includes all the necessary code for image processing, such as image manipulation, pixel mapping and interpolation. Additionally, it features a functional GUI for ease of use. It was trained on around 60,000 IR images.
 
 **Note:** The training data and models are not included in this repository due to data and licensing restrictions.
 
